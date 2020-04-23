@@ -207,7 +207,9 @@ public class ArrayDeque <T>{
         if (index >= size){
             return null;
         }
-        if(next_first <= next_last){
+        if(next_first <= next_last && size == items.length){
+            return items[index - (items.length - next_first - 1)];
+        }else if(next_first <= next_last){
             return items[next_first+index+1];
         }else if ( next_first == items.length-1) {
             return items[index];
@@ -222,23 +224,16 @@ public class ArrayDeque <T>{
         ArrayDeque<Integer> a = new ArrayDeque<Integer>();
 
         a.addFirst(0);
-        a.get(0) ;
-        a.get(0) ;
-        a.addFirst(3);
         a.removeLast();
-        a.removeFirst();
-        a.addFirst(6);
-        a.removeFirst();
-        a.addLast(8);
-        a.addLast(9);
-        a.get(0);
-        a.addLast(11);
-        a.addFirst(12);
-        a.get(0);
-        a.addLast(14);
-        a.addFirst(15);
-        a.addLast(16);
-        System.out.println(a.get(4));
+        a.addFirst(2);
+        a.addFirst(3);
+        a.addFirst(4);
+        a.addFirst(5);
+        a.addLast(6);
+        a.addFirst(7);
+        a.addFirst(8);
+        a.addFirst(9);
+        System.out.println(a.get(6));
 
 
     }

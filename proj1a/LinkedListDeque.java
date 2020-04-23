@@ -19,7 +19,7 @@ public class LinkedListDeque <T> {
         size = 0;
         sentinel = new Node(null, null, null); //create a new Node with string instance;
         sentinel.prev = sentinel; // sentinel.prev is pointing back to sentinel
-        sentinel.next = sentinel.prev; //sentinel.next is pointing to sentinel.prev
+        sentinel.next = sentinel; //sentinel.next is pointing to sentinel.prev
 
     }
 
@@ -30,6 +30,7 @@ public class LinkedListDeque <T> {
             sentinel.prev = sentinel.next;
         } else {
             Node cur_node = new Node(i, sentinel, sentinel.next);
+            sentinel.next.prev = cur_node;
             sentinel.next = cur_node;
         }
         size += 1;
@@ -152,29 +153,21 @@ public class LinkedListDeque <T> {
     }
 
 
+    
 
-    /*
     public static void main(String[] args){
         LinkedListDeque<Integer> l = new LinkedListDeque<Integer>();
-        for (int i = 0; i<10;i +=1){
+        l.addLast(1);
+        l.addFirst(2);
+        for (int i = 0; i<10;i+=1){
             l.addLast(i);
         }
-
-        l.addFirst(3);
-        l.addFirst(2);
-        l.addLast(4);
-        l.addLast(5);
-        l.addFirst(1);
-        l.addLast(6);    //'1334','like','ianyyz','cs61b','okkk','hw2'
-        System.out.println( l.getRecursive(10));
-        LinkedListDeque<Integer> new_copy = new LinkedListDeque<Integer>(l);
-        l.removeLast();
-        new_copy.printDeque();
-        System.out.println(l.size());
-        l.printDeque();
+        for (int i = 0; i<10; i+= 1) {
+            l.removeLast();
+            l.removeFirst();
+        }
     }
 
 
-    
-     */
+
 }
