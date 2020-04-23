@@ -209,7 +209,7 @@ public class ArrayDeque <T>{
         }
         if(next_first <= next_last && size == items.length){
             return items[index - (items.length - next_first - 1)];
-        }else if(next_first <= next_last){
+        }else if(next_first <= next_last || next_last == 0){
             return items[next_first+index+1];
         }else if ( next_first == items.length-1) {
             return items[index];
@@ -219,24 +219,20 @@ public class ArrayDeque <T>{
     }
 
 
-
+    /*
     public static void main(String[] args){
         ArrayDeque<Integer> a = new ArrayDeque<Integer>();
 
-        a.addFirst(0);
-        a.removeLast();
-        a.addFirst(2);
-        a.addFirst(3);
-        a.addFirst(4);
-        a.addFirst(5);
-        a.addLast(6);
-        a.addFirst(7);
-        a.addFirst(8);
-        a.addFirst(9);
-        System.out.println(a.get(6));
+        a.addLast(0);
+        a.addLast(1);
+        a.addLast(2);
+        a.addLast(3);
+        System.out.println(a.get(0));
 
 
     }
+
+     */
 
 
 }
