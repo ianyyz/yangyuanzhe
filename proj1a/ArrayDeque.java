@@ -13,6 +13,7 @@ public class ArrayDeque <T>{
         next_last = 4;
     }
 
+
     public ArrayDeque(ArrayDeque other){
         items = (T[]) new Object[8];
         size = 0;
@@ -50,7 +51,10 @@ public class ArrayDeque <T>{
     }
 
 
-    public void contract(){
+    private void contract(){
+        if (items.length < 10){
+            return;
+        }
         T[] a = (T[]) new Object[items.length/2];
         if ((items[items.length-1] == null )&& (next_first != items.length-1)){
             System.arraycopy(items,next_first+1,a,0,size);
@@ -197,6 +201,12 @@ public class ArrayDeque <T>{
     }
 
     public T get(int index){
+        if (size == 0){
+            return null;
+        }
+        if (index >= size){
+            return null;
+        }
         if(next_first < next_last){
             return items[next_first+index+1];
         }else if ( next_first == items.length-1) {
@@ -205,23 +215,23 @@ public class ArrayDeque <T>{
             return items[index-(items.length-next_first-1)];
     }
 
-
+    /*
     public static void main(String[] args){
         ArrayDeque<Integer> a = new ArrayDeque<Integer>();
-        for (int i =0; i<15; i += 1){
+        for (int i =0; i<10; i += 1){
             a.addLast(i);
         }
-        for (int i = 10; i<19; i += 1){
+        for (int i = 10; i<15; i += 1){
             a.addFirst(i);
         }
 
-        for (int i = 0; i < 5; i+=1){
+        for (int i = 0; i < 10; i+=1){
             a.removeFirst();
+            a.removeLast();
         }
 
-        for (int i = 5; i<7; i += 1){
-            a.addLast(i);
-        }
+        System.out.println(a.get(0));
+
         ArrayDeque<Integer> new_copy = new ArrayDeque<>(a);
 
         new_copy.addFirst(2);
@@ -231,7 +241,9 @@ public class ArrayDeque <T>{
 
 
         a.printDeque();
-        new_copy.printDeque();
-        a.printDeque();
+
+
     }
+
+     */
 }
