@@ -17,7 +17,7 @@ public class LinkedListDeque <T> {
 
     public LinkedListDeque() {
         size = 0;
-        sentinel = new Node<String>("generic", null, null); //create a new Node with string instance;
+        sentinel = new Node(null, null, null); //create a new Node with string instance;
         sentinel.prev = sentinel; // sentinel.prev is pointing back to sentinel
         sentinel.next = sentinel.prev; //sentinel.next is pointing to sentinel.prev
 
@@ -154,7 +154,6 @@ public class LinkedListDeque <T> {
 
 
     /*
-
     public static void main(String[] args){
         LinkedListDeque<Integer> l = new LinkedListDeque<Integer>();
         for (int i = 0; i<10;i +=1){
@@ -174,6 +173,8 @@ public class LinkedListDeque <T> {
         System.out.println(l.size());
         l.printDeque();
     }
+
+
     
      */
 }
