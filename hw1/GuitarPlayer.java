@@ -11,7 +11,6 @@ import javax.sound.midi.Track;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-
 /**
  * Plays guitar from MIDI files.
  *

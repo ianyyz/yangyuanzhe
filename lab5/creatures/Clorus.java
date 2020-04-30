@@ -8,42 +8,26 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.Map;
 
-/**
- * An implementation of a motile pacifist photosynthesizer.
- *
- * @author Josh Hug
- */
-public class Plip extends Creature {
-
-    /**
-     * red color.
-     */
+public class Clorus extends Creature {
     private int r;
-    /**
-     * green color.
-     */
+
     private int g;
-    /**
-     * blue color.
-     */
+
     private int b;
 
-    /**
-     * creates plip with energy equal to E.
-     */
 
-    public Plip(double e) {
-        super("plip");
-        r = 0;
+    public Clorus(double e) {
+        super("clorus");
+        r = 34;
         g = 0;
-        b = 0;
+        b = 231;
         energy = e;
     }
 
     /**
      * creates a plip with energy equal to 1.
      */
-    public Plip() {
+    public Clorus() {
         this(1);
     }
 
@@ -56,43 +40,24 @@ public class Plip extends Creature {
      * that you get this exactly correct.
      */
     public Color color() {
-        r = 99;
-        b = 76;
-        g = (int) ( 63+96*energy);
+        r = 34;
+        b = 231;
+        g = 0;
         return color(r, g , b);
     }
 
-    /**
-     * Do nothing with C, Plips are pacifists.
-     */
     public void attack(Creature c) {
-        // do nothing.
+        energy += c.energy();
+
     }
 
-    /**
-     * Plips should lose 0.15 units of energy when moving. If you want to
-     * to avoid the magic number warning, you'll need to make a
-     * private static final variable. This is not required for this lab.
-     */
     public void move() {
-        if (energy <= 0.15){
-            energy = 0;
-            return;
-        }
-        energy -= 0.15;
+        energy -= 0.03;
 
     }
 
-
-    /**
-     * Plips gain 0.2 energy when staying due to photosynthesis.
-     */
     public void stay() {
-        if (energy >= 1.8){
-            energy = 2;
-            return;
-        }
-        energy += 0.2;
+        energy -= 0.01;
     }
 
     /**
@@ -100,11 +65,11 @@ public class Plip extends Creature {
      * lost to the process. Now that's efficiency! Returns a baby
      * Plip.
      */
-    public Plip replicate() {
-        Plip p_new = new Plip();
-        p_new.energy = this.energy/2;
+    public Clorus replicate() {
+        Clorus c_new = new Clorus();
+        c_new.energy = this.energy/2;
         energy = energy/2;
-        return p_new;
+        return c_new;
     }
 
     public Direction getRandomDir(Deque ad){
@@ -132,42 +97,38 @@ public class Plip extends Creature {
      * for an example to follow.
      */
     public Action chooseAction(Map<Direction, Occupant> neighbors) {
-        double moveProbability = 0.5;
         // Rule 1
         Deque<Direction> emptyNeighbors = new ArrayDeque<>();
-        Deque<Direction> clorusNeighbors = new ArrayDeque<>();
-        boolean anyClorus = true;
-
+        Deque<Direction> plipNeighbors = new ArrayDeque<>();
         for (Direction key : neighbors.keySet()) {
             if (neighbors.get(key).name().equals("empty")) {
                 emptyNeighbors.add(key);
             }
         }
 
+        boolean anyPlip = true;
         for (Direction key : neighbors.keySet()) {
-            if (neighbors.get(key).name().equals("clorus")) {
-                clorusNeighbors.add(key);
+            if (neighbors.get(key).name().equals("plip")) {
+                plipNeighbors.add(key);
             }
         }
-        if(clorusNeighbors.size() == 0){
-            anyClorus = false;
+        if (plipNeighbors.size() == 0){
+            anyPlip = false;
         }
 
         if (emptyNeighbors.size() == 0) {
             return new Action(Action.ActionType.STAY);
-        } else if (this.energy >= 1) {
+        } else if (anyPlip) {
+            Direction dir = getRandomDir(plipNeighbors);
+            return new Action(Action.ActionType.ATTACK, dir);
+        } else if (energy >= 1) {
             Direction dir = getRandomDir(emptyNeighbors);
-            return new Action(Action.ActionType.REPLICATE, dir);
-        } else if (anyClorus) {
-            Direction dir = getRandomDir(emptyNeighbors);
-            if (Math.random() < moveProbability) {
-                return new Action(Action.ActionType.MOVE, dir);
-            }else{
-                return new Action(Action.ActionType.STAY);
-            }
+            return new Action(Action.ActionType.REPLICATE,dir);
         } else {
-            return new Action(Action.ActionType.STAY);
+            Direction dir = getRandomDir(emptyNeighbors);
+            return new Action(Action.ActionType.MOVE,dir);
         }
 
     }
+
 }
