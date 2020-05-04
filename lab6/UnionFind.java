@@ -47,6 +47,12 @@ public class UnionFind {
         }
     }
 
+    public void resize(){
+        for( int i = 0; i< items.length;i++){
+            int root = find(i);
+            sizes[i] = sizes[root];
+        }
+    }
     /* Connects two elements v1 and v2 together. v1 and v2 can be any valid 
        elements, and a union-by-size heuristic is used. If the sizes of the sets
        are equal, tie break by connecting v1's root to v2's root. Unioning a 
@@ -58,6 +64,9 @@ public class UnionFind {
         if (v1 == v2){
             return;
         }
+        if (connected(v1,v2)){
+            return;
+        }
         // find the root;
         int root1 = find(v1);
         int root2 = find(v2);
@@ -67,11 +76,13 @@ public class UnionFind {
             sizes[root2] += sizes[root1];
             sizes[root1] = sizes[root2];
             items[root2] = -sizes[root2];
+            resize();
         }else{
             items[root2] = root1;
             sizes[root1] += sizes[root2];
             sizes[root2] = sizes[root1];
             items[root1] = -sizes[root1];
+            resize();
 
         }
 
@@ -83,9 +94,13 @@ public class UnionFind {
         if (items[vertex] < 0) {
             return vertex;
         }else{
+            /*
             int root = find(items[vertex]);
             items[vertex] = root;
             return root;
+
+             */
+            return find(items[vertex]);
         }
     }
 
