@@ -10,26 +10,31 @@ public class SimpleOomage implements Oomage {
     protected int blue;
 
     private static final double WIDTH = 0.01;
-    private static final boolean USE_PERFECT_HASH = false;
+    private static final boolean USE_PERFECT_HASH = true;
 
     @Override
     public boolean equals(Object o) {
-        // TODO: Write this method.
-        return false;
+        if(o == this) return true;  // return true when the object is itself.
+        if(o == null) return false;  // return false when the object is null.
+        if(o.getClass() != this.getClass()) return false; // if the class type of other is not the same as itself, return false.
+
+        SimpleOomage that = (SimpleOomage) o; //casting the Object to its data type.
+        return (that.red == this.red) && (that.green == this.green) && (that.blue == this.blue); // write the rule.
     }
 
-    /* Uncomment this method after you've written
-       equals and failed the testHashCodeAndEqualsConsistency
-       test.
     @Override
     public int hashCode() {
-        if (!USE_PERFECT_HASH) {
+        if (!USE_PERFECT_HASH) {   // what is this for?
             return red + green + blue;
         } else {
-            // TODO: Write a perfect hash function for Simple Oomages.
-            return 0;
+            /* because we only allow red green blue to be multiple of 5, so the hash code must also be a multiple of 5
+                we do not want this because when we use module to reduce the hashcode, it will always attributes to
+                bucket 5 and bucket 0.
+                So we can divide all red green blue by 5 to erase the attribute or we can change the bucket number.
+             */
+            return (red / 5) * 31 * 31 + (green / 5) * 31 + (blue / 5);
         }
-    }*/
+    }
 
     public SimpleOomage(int r, int g, int b) {
         if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255) {
