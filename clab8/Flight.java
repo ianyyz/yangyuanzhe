@@ -1,27 +1,28 @@
-/**
- * Represents a flight in the Flight problem.
- */
-public class Flight {
+public class Flight{
+    int start;
+    int end;
+    int passenger;
 
-    int startTime;
-    int endTime;
-    int passengers;
 
-    public Flight(int start, int end, int numPassengers) {
-        startTime = start;
-        endTime = end;
-        passengers = numPassengers;
+    public Flight(int s, int e, int p){
+        start =s;
+        end = e;
+        passenger = p;
+    }
+    public int getPassenger(){
+        return this.passenger;
     }
 
-    public int startTime() {
-        return startTime;
+    public int getStart(){
+        return this.start;
     }
 
-    public int endTime() {
-        return endTime;
+    public int getEnd(){
+        return this.end;
     }
 
-    public int passengers() {
-        return passengers;
+    public static void main(String[] args){
+        Flight obj = new Flight(0,0,0);
     }
+
 }

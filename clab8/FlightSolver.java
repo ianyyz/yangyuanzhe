@@ -1,20 +1,53 @@
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.PriorityQueue;
 
-/**
- * Solver for the Flight problem (#9) from CS 61B Spring 2018 Midterm 2.
- * Assumes valid input, i.e. all Flight start times are >= end times.
- * If a flight starts at the same time as a flight's end time, they are
- * considered to be in the air at the same time.
- */
-public class FlightSolver {
+public class FlightSolver{
+    private ArrayList<Flight> flights;
+    public PriorityQueue<Flight> prStart;
+    public PriorityQueue<Flight> prEnd;
 
-    public FlightSolver(ArrayList<Flight> flights) {
-        /* FIX ME */
+    Comparator<Flight> StartComp = (f1,f2) ->{
+        int diff = f1.getStart() - f2.getStart();
+        return diff;
+    };
+
+    Comparator<Flight> EndComp = (f1,f2) -> {
+        int diff = f1.getEnd() - f2.getEnd();
+        return diff;
+    };
+
+
+
+
+    public FlightSolver(ArrayList<Flight> flights){
+        this.flights = flights;
+        prStart = new PriorityQueue<>(flights.size(),StartComp);
+        prEnd = new PriorityQueue<>(flights.size(),EndComp);
+
+        for (Flight f: flights){
+            prStart.add(f);
+            prEnd.add(f);
+        }
     }
 
     public int solve() {
-        /* FIX ME */
-        return -1;
+        int max = 0;
+        int cur = 0;
+        while (prEnd.size() > 0 && prStart.size() > 0) {
+            int startTime = prStart.peek().getStart();
+            int endTime = prEnd.peek().getEnd();
+            if (startTime < endTime) {
+                cur += prStart.poll().getPassenger();
+            } else if (startTime > endTime) {
+                cur -= prEnd.poll().getPassenger();
+            } else {
+                cur += prStart.poll().getPassenger() - prEnd.poll().getPassenger();
+            }
+            if (cur > max) {
+                max = cur;
+            }
+        }
+        return max;
     }
-
 }
