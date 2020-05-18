@@ -23,8 +23,34 @@ public class SeparableEnemySolver {
      * Returns true if input is separable, false otherwise.
      */
     public boolean isSeparable() {
-        // TODO: Fix me
-        return false;
+        Set<String> Group1 = new HashSet<>();
+        Set<String> Group2 = new HashSet<>();
+        int belongToSet = 0; // initialize a int to indicate which table its neighbor should belong to
+        for (String label: g.labels()){ // loop over all the labels a graph can have
+            if(Group1.isEmpty() && Group2.isEmpty()){ // if both set is empty, put the first label in set1
+                Group1.add(label);
+                belongToSet = 1;
+            }else if(Group1.contains(label) && !Group2.contains(label)){ // if the label is in set1 but not set2
+                belongToSet = 1;
+            }else if(!Group1.contains(label) && Group2.contains(label)){ // if the label is in set2 but not set1, we do not put the same label again, we only update the belongToSet
+                belongToSet = 2;
+            }else if(!Group1.contains(label) && !Group2.contains(label)){
+                Group1.add(label);
+                belongToSet = 1;
+            }
+            for (String neighbors: g.neighbors(label)){
+                if (belongToSet == 1){
+                    Group2.add(neighbors);
+                }else if(belongToSet == 2){
+                    Group1.add(neighbors);
+                }
+                if (Group2.contains(neighbors) && Group1.contains(neighbors)){
+                    return false;
+                }
+            }
+
+        }
+        return true;
     }
 
 
