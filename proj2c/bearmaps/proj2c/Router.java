@@ -1,5 +1,11 @@
 package bearmaps.proj2c;
 
+import bearmaps.hw4.AStarSolver;
+import bearmaps.hw4.WeirdSolver;
+import bearmaps.proj2ab.Point;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Matcher;
@@ -24,10 +30,9 @@ public class Router {
      */
     public static List<Long> shortestPath(AugmentedStreetMapGraph g, double stlon, double stlat,
                                           double destlon, double destlat) {
-        //long src = g.closest(stlon, stlat);
-        //long dest = g.closest(destlon, destlat);
-        //return new WeirdSolver<>(g, src, dest, 20).solution();
-        return null;
+        long src = g.closest(stlon, stlat);
+        long dest = g.closest(destlon, destlat);
+        return new AStarSolver<>(g, src, dest, 200).solution();
     }
 
     /**
@@ -39,9 +44,47 @@ public class Router {
      * route.
      */
     public static List<NavigationDirection> routeDirections(AugmentedStreetMapGraph g, List<Long> route) {
-        /* fill in for part IV */
-        return null;
+        List<String> streetNames = new ArrayList<>();
+        List<NavigationDirection> routeNavigator = new LinkedList<>();
+        double bearingPrev;
+        double bearingAfter;
+
+        for(int i = 0; i<route.size()-1; i++){
+            NavigationDirection router = new NavigationDirection();
+            if (i == 0){
+                bearingPrev = 0.0;
+                bearingAfter = router.bearing(g.IdToNode.get(route.get(i)).lon(),g.IdToNode.get(route.get(i+1)).lon(),
+                        g.IdToNode.get(route.get(i)).lat(),g.IdToNode.get(route.get(i+1)).lat());
+            }else{
+                bearingPrev = router.bearing(g.IdToNode.get(route.get(i-1)).lon(),g.IdToNode.get(route.get(i)).lon(),
+                        g.IdToNode.get(route.get(i-1)).lat(),g.IdToNode.get(route.get(i)).lat());
+                bearingAfter = router.bearing(g.IdToNode.get(route.get(i)).lon(),g.IdToNode.get(route.get(i+1)).lon(),
+                        g.IdToNode.get(route.get(i)).lat(),g.IdToNode.get(route.get(i+1)).lat());
+            }
+
+            if(i == 0){
+                router.direction = router.START;
+            }else{
+                router.direction = router.getDirection(bearingPrev,bearingAfter);
+            }
+
+            String StreetName = g.IdToNode.get(route.get(i+1)).name();
+            if(!streetNames.contains(StreetName)){
+                streetNames.add(StreetName);
+                router.way = StreetName;
+            }
+
+            double Distance = g.distance(g.IdToNode.get(route.get(i)).lon(),g.IdToNode.get(route.get(i+1)).lon(),
+                    g.IdToNode.get(route.get(i)).lat(),g.IdToNode.get(route.get(i+1)).lat());
+
+
+
+        }
+
+        return routeNavigator;
     }
+
+
 
     /**
      * Class to represent a navigation direction, which consists of 3 attributes:

@@ -17,12 +17,15 @@
         $.get({
             async: false,
             url: query_url,
+
             data: { h: 300,
                     lrlat: 37.848731523430196,
                     lrlon: -122.20908713544797,
                     ullat: 37.88708748276975,
                     ullon: -122.3027284165759,
                     w: 305
+
+
                    },
             success: function(data) {
                 map.src = "data:image/png;base64," + data.b64_encoded_image_data;

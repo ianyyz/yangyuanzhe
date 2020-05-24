@@ -2,8 +2,11 @@ package bearmaps.proj2c;
 
 import bearmaps.hw4.streetmap.Node;
 import bearmaps.hw4.streetmap.StreetMapGraph;
+import bearmaps.proj2ab.KDTree;
 import bearmaps.proj2ab.Point;
+import bearmaps.proj2ab.WeirdPointSet;
 
+import javax.naming.Name;
 import java.util.*;
 
 /**
@@ -14,11 +17,38 @@ import java.util.*;
  * @author Alan Yao, Josh Hug, ________
  */
 public class AugmentedStreetMapGraph extends StreetMapGraph {
+    private Map<Point,Node> PointToNode;
+    private Map<String,List<Node>> NameToNode;
+    private List<Point> points;
+    private MyTrieSet tries;
+    public Map<Long,Node> IdToNode;
 
     public AugmentedStreetMapGraph(String dbPath) {
         super(dbPath);
         // You might find it helpful to uncomment the line below:
-        // List<Node> nodes = this.getNodes();
+        List<Node> nodes = this.getNodes();
+        points = new ArrayList<>();
+        PointToNode = new HashMap<>();
+        NameToNode = new HashMap<>();
+        tries = new MyTrieSet();
+        IdToNode = new HashMap<>();
+        for (Node n: nodes){
+            if(n.name() != null){
+                String cleanString = this.cleanString(n.name());
+                tries.add(cleanString);
+                if (!NameToNode.containsKey(cleanString)) {
+                    NameToNode.put(cleanString, new LinkedList<>());
+                }
+                NameToNode.get(cleanString).add(n);
+            }
+
+            if(neighbors(n.id()).size() >0){ // only if the node has some neighbor, we count this into our points.
+                Point p = new Point(n.lon(),n.lat());
+                PointToNode.put(p,n);
+                points.add(p);
+                IdToNode.put(n.id(),n);
+            }
+        }
     }
 
 
@@ -30,9 +60,11 @@ public class AugmentedStreetMapGraph extends StreetMapGraph {
      * @return The id of the node in the graph closest to the target.
      */
     public long closest(double lon, double lat) {
-        return 0;
+        WeirdPointSet tree = new WeirdPointSet(points);
+        Point nearestPoint = tree.nearest(lon,lat);
+        Node nearestNode =  PointToNode.get(nearestPoint);
+        return nearestNode.id();
     }
-
 
     /**
      * For Project Part III (gold points)
@@ -43,7 +75,16 @@ public class AugmentedStreetMapGraph extends StreetMapGraph {
      * cleaned <code>prefix</code>.
      */
     public List<String> getLocationsByPrefix(String prefix) {
-        return new LinkedList<>();
+        List<String> cleanNames = tries.keysWithPrefix(cleanString(prefix));
+        List<String> fullNames = new LinkedList<>();
+        for (String name: cleanNames) {
+            for (Node n: NameToNode.get(name)) {
+                if (!fullNames.contains(n.name())) {
+                    fullNames.add(n.name());
+                }
+            }
+        }
+        return fullNames;
     }
 
     /**
@@ -60,7 +101,17 @@ public class AugmentedStreetMapGraph extends StreetMapGraph {
      * "id" -> Number, The id of the node. <br>
      */
     public List<Map<String, Object>> getLocations(String locationName) {
-        return new LinkedList<>();
+        String cleanName = this.cleanString(locationName);
+        List<Map<String,Object>> resultMap = new ArrayList<>();
+        for(Node n: NameToNode.get(cleanName)){
+            Map<String,Object> spot = new HashMap<>();
+            spot.put("lat",n.lat());
+            spot.put("lon",n.lon());
+            spot.put("name",n.name());
+            spot.put("id",n.id());
+            resultMap.add(spot);
+        }
+        return resultMap;
     }
 
 

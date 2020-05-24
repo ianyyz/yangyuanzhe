@@ -2,6 +2,7 @@ package bearmaps.proj2c.server.handler.impl;
 
 import bearmaps.proj2c.AugmentedStreetMapGraph;
 import bearmaps.proj2c.server.handler.APIRouteHandler;
+import edu.princeton.cs.algs4.In;
 import spark.Request;
 import spark.Response;
 import bearmaps.proj2c.utils.Constants;
@@ -12,13 +13,10 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.Base64;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
-import static bearmaps.proj2c.utils.Constants.SEMANTIC_STREET_GRAPH;
-import static bearmaps.proj2c.utils.Constants.ROUTE_LIST;
+import static bearmaps.proj2c.utils.Constants.*;
 
 /**
  * Handles requests from the web browser for map images. These images
@@ -51,6 +49,59 @@ public class RasterAPIHandler extends APIRouteHandler<Map<String, Double>, Map<S
         return getRequestParams(request, REQUIRED_RASTER_REQUEST_PARAMS);
     }
 
+    private double getLonDPPInDim(int k){
+        return (ROOT_LRLON-ROOT_ULLON)/TILE_SIZE/Math.pow(2,k);
+    }
+
+    private Map<String,Integer> xyCoordinateBlockWithDimK(double x,double y,int k){
+        int xCoor = (int) Math.floor((x-ROOT_ULLON)/((ROOT_LRLON-ROOT_ULLON)/Math.pow(2,k)));
+        int yCoor = (int) Math.floor((ROOT_ULLAT-y)/((ROOT_ULLAT-ROOT_LRLAT)/Math.pow(2,k)));
+        Map<String,Integer> result = new HashMap<>();
+        result.put("xCoor",xCoor);
+        result.put("yCoor",yCoor);
+        return result;
+    }
+
+    private String xyBlockToString(int x, int y,int dim){
+        String result = "d" + dim + "_" + "x" + x + "_" + "y" + y + ".png";
+        return result;
+    }
+
+    private Map<String,Double> getLatLonOfBlock(int x,int y, int dim){
+        double ULLon = ROOT_ULLON + x * ((ROOT_LRLON-ROOT_ULLON)/Math.pow(2,dim));
+        double ULLat = ROOT_ULLAT - y * ((ROOT_ULLAT-ROOT_LRLAT)/Math.pow(2,dim));
+        double LRLon = ROOT_ULLON + (x+1) * ((ROOT_LRLON-ROOT_ULLON)/Math.pow(2,dim));
+        double LRLat = ROOT_ULLAT - (y+1) * ((ROOT_ULLAT-ROOT_LRLAT)/Math.pow(2,dim));
+        Map<String, Double> result = new HashMap<>();
+        result.put("ULLon",ULLon);
+        result.put("ULLat",ULLat);
+        result.put("LRLon",LRLon);
+        result.put("LRLat",LRLat);
+        return result;
+    }
+
+    private boolean qualification(Map<String, Double> requestParams){
+        if(requestParams.get("ullon").compareTo(requestParams.get("lrlon")) >= 0){
+            return false;
+        }
+        if(requestParams.get("ullat").compareTo(requestParams.get("lrlat")) <= 0){
+            return false;
+        }
+        if(requestParams.get("ullon").compareTo(ROOT_LRLON) >= 0){
+            return false;
+        }
+        if(requestParams.get("ullat").compareTo(ROOT_LRLAT) <= 0){
+            return false;
+        }
+        if(requestParams.get("lrlon").compareTo(ROOT_ULLON) <= 0){
+            return false;
+        }
+        if(requestParams.get("lrlat").compareTo(ROOT_ULLAT) >= 0){
+            return false;
+        }
+        return true;
+    }
+
     /**
      * Takes a user query and finds the grid of images that best matches the query. These
      * images will be combined into one big image (rastered) by the front end. <br>
@@ -81,15 +132,73 @@ public class RasterAPIHandler extends APIRouteHandler<Map<String, Double>, Map<S
      *                    string. <br>
      * "query_success" : Boolean, whether the query was able to successfully complete; don't
      *                    forget to set this to true on success! <br>
+     *
      */
+
+
     @Override
     public Map<String, Object> processRequest(Map<String, Double> requestParams, Response response) {
-        //System.out.println("yo, wanna know the parameters given by the web browser? They are:");
-        //System.out.println(requestParams);
-        Map<String, Object> results = new HashMap<>();
-        System.out.println("Since you haven't implemented RasterAPIHandler.processRequest, nothing is displayed in "
-                + "your browser.");
-        return results;
+        Map<String, Object> resultingMap = new HashMap<>();
+        boolean query_success;
+        if (qualification(requestParams)){
+            query_success = true;
+        }else{
+            query_success = false;
+            resultingMap.put("query_success",query_success);
+            return resultingMap;
+        }
+        resultingMap.put("query_success",query_success);
+
+
+        if(requestParams.get("ullon").compareTo(ROOT_ULLON) <= 0){
+            requestParams.put("w",(requestParams.get("lrlon")-ROOT_ULLON)/(requestParams.get("lrlon")-requestParams.get("ullon"))*requestParams.get("w"));
+            requestParams.put("ullon",ROOT_ULLON);
+        }
+        if(requestParams.get("ullat").compareTo(ROOT_ULLAT) >= 0){
+            requestParams.put("ullat",ROOT_ULLAT);
+        }
+        if(requestParams.get("lrlon").compareTo(ROOT_LRLON) >= 0){
+            requestParams.put("w",(ROOT_LRLON - requestParams.get("ullon"))/(requestParams.get("lrlon")-requestParams.get("ullon"))*requestParams.get("w"));
+            requestParams.put("lrlon",ROOT_LRLON);
+        }
+        if(requestParams.get("lrlat").compareTo(ROOT_LRLAT) <= 0){
+            requestParams.put("lrlat",ROOT_LRLAT);
+        }
+
+
+
+
+        Double requiredLonDPP = (requestParams.get("lrlon")-requestParams.get("ullon"))/requestParams.get("w");
+        int dim = 0;
+        while(dim < 7){
+            if(getLonDPPInDim(dim)<requiredLonDPP){
+                break;
+            }
+            dim += 1;
+        }
+        Map ULBlock = xyCoordinateBlockWithDimK(requestParams.get("ullon"),requestParams.get("ullat"),dim);
+        Map LRBlock = xyCoordinateBlockWithDimK(requestParams.get("lrlon"),requestParams.get("lrlat"),dim);
+        Map UL = getLatLonOfBlock((int) ULBlock.get("xCoor"),(int) ULBlock.get("yCoor"),dim);
+        Map LR = getLatLonOfBlock((int) LRBlock.get("xCoor"),(int) LRBlock.get("yCoor"),dim);
+        resultingMap.put("raster_ul_lon",UL.get("ULLon"));
+        resultingMap.put("raster_ul_lat",UL.get("ULLat"));
+        resultingMap.put("raster_lr_lon",LR.get("LRLon"));
+        resultingMap.put("raster_lr_lat",LR.get("LRLat"));
+        int col = (int) LRBlock.get("xCoor") - (int) ULBlock.get("xCoor") + 1;
+        int row = (int) LRBlock.get("yCoor") - (int) ULBlock.get("yCoor") + 1;
+        String [][] render_grid = new String[row][col];
+        for (int y = 0; y <= (int) LRBlock.get("yCoor") - (int) ULBlock.get("yCoor"); y++){
+            for (int x = 0; x <= (int) LRBlock.get("xCoor") - (int) ULBlock.get("xCoor"); x++){
+                render_grid[y][x] = xyBlockToString((int) ULBlock.get("xCoor")+ x,(int) ULBlock.get("yCoor")+y,dim);
+            }
+        }
+        resultingMap.put("render_grid",render_grid);
+        resultingMap.put("depth", dim);
+        System.out.println("yo, wanna know the parameters given by the web browser? They are:");
+        System.out.println(requestParams);
+        System.out.println("yo, wanna know what the raster gives you? They are:");
+        System.out.println(resultingMap);
+        return resultingMap;
     }
 
     @Override
