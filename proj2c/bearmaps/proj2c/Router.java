@@ -32,7 +32,7 @@ public class Router {
                                           double destlon, double destlat) {
         long src = g.closest(stlon, stlat);
         long dest = g.closest(destlon, destlat);
-        return new AStarSolver<>(g, src, dest, 200).solution();
+        return new AStarSolver<>(g, src, dest, 20).solution();
     }
 
     /**
@@ -43,6 +43,10 @@ public class Router {
      * @return A list of NavigatiionDirection objects corresponding to the input
      * route.
      */
+
+    // I am confused about how can we calculate the distance between Nodes if the distance mathod in StreetMapGraph is private
+    // I am also confused about how can we exactly represent the NavigationDirection.way? Is it the name of the route Node?
+    // need further modification.
     public static List<NavigationDirection> routeDirections(AugmentedStreetMapGraph g, List<Long> route) {
         List<String> streetNames = new ArrayList<>();
         List<NavigationDirection> routeNavigator = new LinkedList<>();
@@ -76,9 +80,6 @@ public class Router {
 
             double Distance = g.distance(g.IdToNode.get(route.get(i)).lon(),g.IdToNode.get(route.get(i+1)).lon(),
                     g.IdToNode.get(route.get(i)).lat(),g.IdToNode.get(route.get(i+1)).lat());
-
-
-
         }
 
         return routeNavigator;
