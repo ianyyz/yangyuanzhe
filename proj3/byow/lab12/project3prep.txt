@@ -1,18 +1,19 @@
 Q: Can you think of an analogy between the process of tesselating hexagons and randomly generating a world using rooms and hallways? 
 What is the hexagon and what is the tesselation on the Project 3 side?
 
-A:
+A: a hallway is like a special shape of Hexagon, same as a room. just add randomness on the size of the room and length of the hallway,
+and finally connect them as a whole.
 
 -----
 Q: If you were to start working on world generation, what kind of method would you think of writing first? 
 Think back to the lab and the process used to eventually get to tesselating hexagons.
 
-A:
+A: I will first right add a Hallway and add a room
 
 -----
 Q: What distinguishes a hallway from a room? How are they similar?
 
-A:
+A: hallway has two exits but room only has one.
 
 -----
 Q: For tesselating hexagons, one of the hardest parts is figuring out where to place each hexagon/how to easily place hexagons on screen in an algorithmic way. 
@@ -26,4 +27,14 @@ Q: Consider an algorithm for placing rooms and hallways on your map.
 Ideally, consider many algorithms and think about what makes some easier or harder to implement. Try and bring those ideas together into a single simple algorithm which accomplishes the task. 
 In general, algorithms with as few edge cases as possible are better algorithms.
 
-A:
+A:First: I wrote a couple of methods that compute the bottom-left Position of a current hexagon’s neighbors. For example, I wrote topRightNeighbor, which computed the right thing to pass to addHexagon so that I could get my topRight neighbor. I did not write JUnit tests for this because I knew it’d be easy to visually test, though JUnit tests would have been fine. I then wrote bottomRight, and ended up with 3 whole hexagons out of the 19 I wanted.
+
+  Second: I tried to figure out how I could use bottomRight and topRight in some clever way to get the whole grid, but was a bit stymied. I considered trying to use recursion in some way, but it didn’t feel like the right solution for symmetry reasons (too much weird backtracking). I then thought about whether I’d be stuck having to write six different neighbor methods, and decided that seemed excessive. All of this was done without any coding. If I’d have started coding all this, it would have been a huge waste of time.”
+
+  Third: Stepping back, I decided to try to find the “nicest” way to try to lay out my hexagons and was ready to throw away my bottomRight and topRight methods entirely. Then the key AHA moment occurred when I noticed that the world consists of 5 columns of 3, 4, 5, 4, and 3 hexagons, respectively.
+
+  Fourth: I wrote a method called drawRandomVerticalHexes that draws a column of N hexes, each one with a random biome.
+
+  Fifth: I wrote a main method that is a little ugly, but basically calls drawRandomVerticalHexes five times, one for each of the five columns of the world, consisting of 3, 4, 5, 4, and 3 hexagons. To figure out the starting position for the “top” hex of each column, I used the topRightNeighbor or bottomRightNeighbor on the old top, as appropriate.
+
+  Sixth: I added some code to allow for interactivity so you can press a single key to get a new random world and enjoyed playing around with it. But interactivity will have to wait until next week’s lab for you guys.
