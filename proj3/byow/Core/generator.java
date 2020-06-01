@@ -136,44 +136,118 @@ public class generator {
     }
 
     private Room connectARoomToHallway(TETile[][] TileGrid, int height, int width, Hallway hallway,int direction){
+        if (!validHallwayExit(TileGrid,hallway)){
+            TileGrid[hallway.exit.x][hallway.exit.y] = Tileset.WALL;
+            return null;
+        }
         int index;
         Room room;
         int x = hallway.exit.x;
         int y = hallway.exit.y;
         if (direction == UP || direction == DOWN){
-            index = RandomUtils.uniform(RANDOM,1,width-1);
+            //index = RandomUtils.uniform(RANDOM,1,width-1);
+            index = Math.min(RandomUtils.uniform(RANDOM,1,width-1),x);
         }else{
-            index = RandomUtils.uniform(RANDOM,1,height-1);
+            index = Math.min(RandomUtils.uniform(RANDOM,1,height-1),y);
         }
         if (direction == UP){
             Position oneOverExit = new Position(x - index,y + 1);
-            addARoom(TileGrid,height,width,oneOverExit);
+            while(!validRoomPosition(TileGrid,oneOverExit)){
+                oneOverExit = new Position(oneOverExit.x+1, oneOverExit.y);
+            }
+
+            room = addARoom(TileGrid,height,width,oneOverExit);
             TileGrid[hallway.exit.x][hallway.exit.y + 1] = Tileset.FLOOR;
-            room = new Room(oneOverExit,width,height);
         }else if (direction == DOWN){
-            Position oneOverExit = new Position(x - index,y-height);
-            addARoom(TileGrid,height,width,oneOverExit);
+            Position oneOverExit = new Position(hallway.exit.x,hallway.exit.y -1);
+            while(validRoomPosition(TileGrid,oneOverExit) && (oneOverExit.y > y-height && oneOverExit.y > 0)){
+                oneOverExit = new Position(oneOverExit.x,oneOverExit.y-1);
+                if (!validRoomPosition(TileGrid,oneOverExit)){
+                    oneOverExit = new Position(oneOverExit.x, oneOverExit.y + 1);
+                    break;
+                }
+            }
+            while(validRoomPosition(TileGrid,oneOverExit) && (oneOverExit.x > x - index && oneOverExit.x>0)){
+                oneOverExit = new Position(oneOverExit.x -1,oneOverExit.y);
+                if (!validRoomPosition(TileGrid,oneOverExit)){
+                    oneOverExit = new Position(oneOverExit.x + 1, oneOverExit.y);
+                    break;
+                }
+            }
+            room = addARoom(TileGrid,height,width,oneOverExit);
             TileGrid[hallway.exit.x][hallway.exit.y - 1] = Tileset.FLOOR;
-            room = new Room(oneOverExit,width,height);
         }else if (direction == LEFT){
-            Position oneOverExit = new Position(x - width,y-index);
-            addARoom(TileGrid,height,width,oneOverExit);
+            Position oneOverExit = new Position(hallway.exit.x - 1,hallway.exit.y);
+            while(validRoomPosition(TileGrid,oneOverExit) && (oneOverExit.x > x - width && oneOverExit.x > 0)){
+                oneOverExit = new Position(oneOverExit.x - 1,oneOverExit.y);
+                if (!validRoomPosition(TileGrid,oneOverExit)){
+                    oneOverExit = new Position(oneOverExit.x + 1, oneOverExit.y);
+                    break;
+                }
+            }
+            while(validRoomPosition(TileGrid,oneOverExit) && (oneOverExit.y > y - index && oneOverExit.y > 0)){
+                oneOverExit = new Position(oneOverExit.x,oneOverExit.y - 1);
+                if (!validRoomPosition(TileGrid,oneOverExit)){
+                    oneOverExit = new Position(oneOverExit.x, oneOverExit.y + 1);
+                    break;
+                }
+            }
+            room =  addARoom(TileGrid,height,width,oneOverExit);
             TileGrid[hallway.exit.x -1 ][hallway.exit.y ] = Tileset.FLOOR;
-            room = new Room(oneOverExit,width,height);
         }else{
             Position oneOverExit = new Position(x + 1,y-index);
-            addARoom(TileGrid,height,width,oneOverExit);
+            while(!validRoomPosition(TileGrid,oneOverExit)){
+                oneOverExit = new Position(oneOverExit.x,oneOverExit.y + 1);
+            }
+            room = addARoom(TileGrid,height,width,oneOverExit);
             TileGrid[hallway.exit.x + 1][hallway.exit.y ] = Tileset.FLOOR;
-            room = new Room(oneOverExit,width,height);
-
         }
         return room;
     }
 
-    private boolean validRoomPosition(TETile[][] TileGrid, Hallway hallway) {
-        return true;
+    private boolean validRoomPosition(TETile[][] TileGrid, Position position) {
+        if (!ifEmptySpace(TileGrid,position.x,position.y)){
+            return false;
+        }else{
+            return true;
+        }
     }
 
+    private boolean validHallwayExit(TETile[][] TileGrid, Hallway hallway){
+        if (hallway.direction == UP){
+            for ( int yCoor = hallway.exit.y + 1; yCoor < hallway.exit.y + 4; yCoor++ ){
+                if(!ifEmptySpace(TileGrid,hallway.exit.x,yCoor) || !ifEmptySpace(TileGrid,hallway.exit.x +1,yCoor) ||
+                        !ifEmptySpace(TileGrid,hallway.exit.x - 1,yCoor)){
+                    return false;
+                }
+            }
+            return true;
+        }else if (hallway.direction == DOWN){
+            for ( int yCoor = hallway.exit.y - 1; yCoor > hallway.exit.y - 4; yCoor-- ){
+                if(!ifEmptySpace(TileGrid,hallway.exit.x,yCoor) || !ifEmptySpace(TileGrid,hallway.exit.x +1,yCoor) ||
+                        !ifEmptySpace(TileGrid,hallway.exit.x - 1,yCoor)){
+                    return false;
+                }
+            }
+            return true;
+        }else if (hallway.direction == LEFT){
+            for ( int xCoor = hallway.exit.x - 1; xCoor > hallway.exit.x - 4; xCoor-- ){
+                if(!ifEmptySpace(TileGrid,xCoor,hallway.exit.y) || !ifEmptySpace(TileGrid,xCoor,hallway.exit.y -1) ||
+                        !ifEmptySpace(TileGrid,xCoor,hallway.exit.y+1)){
+                    return false;
+                }
+            }
+            return true;
+        }else {
+            for ( int xCoor = hallway.exit.x + 1; xCoor < hallway.exit.x + 4; xCoor++ ){
+                if(!ifEmptySpace(TileGrid,xCoor,hallway.exit.y) || !ifEmptySpace(TileGrid,xCoor,hallway.exit.y -1) ||
+                        !ifEmptySpace(TileGrid,xCoor,hallway.exit.y+1)){
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
 
     private void fillTheGridWithEmptySpace(TETile[][] TileGrid){
         int width = TileGrid.length;
@@ -186,52 +260,65 @@ public class generator {
     }
 
     private List<Integer> wAndHifRoomHitWall(TETile[][] TileGrid,int height, int width, Position position) {
+        if( position.x + width > WIDTH){
+            width = WIDTH - position.x;
+        }
+        if (position.y + height > HEIGHT){
+            height = HEIGHT - position.y;
+        }
         List<Integer> result = new ArrayList<>();
         int trueHeight = 0;
         int trueWidth = 0;
-        boolean widthHitWall = false;
-        for (int xCoor = position.x; xCoor < position.x + width; xCoor++) {
-            for (int yCoor = position.y; yCoor < position.y + height; yCoor++) {
-                if (!TileGrid[xCoor + 1][yCoor].equals(Tileset.NOTHING)) {
-                    widthHitWall = true;
-                    break;
-                }
-            }
-            if(!widthHitWall) {
-                trueWidth += 1;
-            }else {
-                break;
-            }
-        }
-        boolean heightHitWall = false;
-        for (int yCoor = position.y; yCoor < position.y + height; yCoor++) {
+            boolean widthHitWall = false;
             for (int xCoor = position.x; xCoor < position.x + width; xCoor++) {
-                if (!TileGrid[xCoor][yCoor + 1].equals(Tileset.NOTHING)) {
-                    heightHitWall = true;
+                for (int yCoor = position.y; yCoor < position.y + height; yCoor++) {
+                    if (xCoor >= WIDTH - 1){
+                        widthHitWall = true;
+                        break;
+                    }else if (!TileGrid[xCoor + 1][yCoor].equals(Tileset.NOTHING)) {
+                        widthHitWall = true;
+                        break;
+                    }
+                }
+                trueWidth += 1;
+                if (widthHitWall) {
                     break;
                 }
             }
-            if(!heightHitWall) {
+            boolean heightHitWall = false;
+            for (int yCoor = position.y; yCoor < position.y + height; yCoor++) {
+                for (int xCoor = position.x; xCoor < position.x + trueWidth; xCoor++) {
+                    if (yCoor >= HEIGHT - 1) {
+                        heightHitWall = true;
+                        break;
+                    } else if (!TileGrid[xCoor][yCoor + 1].equals(Tileset.NOTHING)) {
+                        heightHitWall = true;
+                        break;
+                    }
+                }
                 trueHeight += 1;
-            }else {
-                break;
+                if (heightHitWall) {
+                    break;
+                }
+
+
             }
-        }
+
 
         result.add(trueWidth);
         result.add(trueHeight);
+        /*
         if ( widthHitWall || heightHitWall){
             result.add(1);
         }else{
             result.add(-1);
         }
+
+         */
         return result;
     }
 
     private Room addARoom(TETile[][] TileGrid,int height, int width, Position position){
-        if(!TileGrid[position.x][position.y].equals(Tileset.NOTHING)){
-            return null;
-        }else{
             Room room;
             List <Integer> wAndH = wAndHifRoomHitWall(TileGrid,height,width,position);
             int newHeight = wAndH.get(1);
@@ -249,13 +336,16 @@ public class generator {
                     }
                 }
             }
+            /*
             if (wAndH.get(2) < 0){
                 room = new Room(position,newWidth,newHeight);
             }else{
                 room = null;
             }
-            return room;
-        }
+
+             */
+        room = new Room(position,newWidth,newHeight);
+        return room;
     }
 
     private boolean ifHallwaysHitEdge(TETile[][] TileGrid,int length, Room room, int direction){
@@ -554,16 +644,31 @@ public class generator {
         generator generator = new generator();
         generator.fillTheGridWithEmptySpace(generator.hexGRid);
         Position p = new Position(30,10);
-        generator.addARoom(generator.hexGRid,10,7,p);
-        Room a = new Room(p,7,10);
+        Room a = generator.addARoom(generator.hexGRid,10,7,p);
         Hallway hallway1 = generator.addHallwaysToRoom(generator.hexGRid,9,a,UP);
         Hallway hallway2 = generator.addHallwaysToRoom(generator.hexGRid,5,a,RIGHT);
+        Hallway hallway6 = generator.addHallwaysToRoom(generator.hexGRid,5,a,LEFT);
+        Room g = generator.connectARoomToHallway(generator.hexGRid,6,10,hallway6,hallway6.direction);
+
         Room b = generator.connectARoomToHallway(generator.hexGRid,6,10,hallway2,hallway2.direction);
         Hallway hallway3 = generator.addHallwaysToRoom(generator.hexGRid,5,b,DOWN);
-        Room c = generator.connectARoomToHallway(generator.hexGRid,3,5,hallway3,hallway3.direction);
+        Room c = generator.connectARoomToHallway(generator.hexGRid,4,5,hallway3,hallway3.direction);
         Hallway hallway4 = generator.addHallwaysToRoom(generator.hexGRid,3,b,UP);
-        Room d = generator.connectARoomToHallway(generator.hexGRid,3,6,hallway4,hallway4.direction);
-        Hallway hallway5 = generator.addHallwaysToRoom(generator.hexGRid,4,d,LEFT);
+        Room d = generator.connectARoomToHallway(generator.hexGRid,7,6,hallway4,hallway4.direction);
+        Hallway hallway5 = generator.addHallwaysToRoom(generator.hexGRid,1,d,LEFT);
+        Room e = generator.connectARoomToHallway(generator.hexGRid,10,6,hallway5,hallway5.direction);
+        Hallway hallway7 = generator.addHallwayOnLeftSide(generator.hexGRid,6,g,LEFT);
+        Room h = generator.connectARoomToHallway(generator.hexGRid,9,10,hallway7,hallway7.direction);
+        Hallway hallway8 = generator.addHallwaysToRoom(generator.hexGRid,0,d,UP);
+        Room hh = generator.connectARoomToHallway(generator.hexGRid,9,9,hallway8,hallway8.direction);
+        Hallway hallway9 = generator.addHallwaysToRoom(generator.hexGRid, 1, hh, LEFT);
+        Room hj = generator.connectARoomToHallway(generator.hexGRid,9,10,hallway9,hallway9.direction);
+        Hallway hallway10 = generator.addHallwaysToRoom(generator.hexGRid, 7, g, DOWN);
+        Room hg = generator.connectARoomToHallway(generator.hexGRid,11,10,hallway10,hallway10.direction);
+        Hallway hallway11 = generator.addHallwaysToRoom(generator.hexGRid, 7, hg, RIGHT);
+        Room hf = generator.connectARoomToHallway(generator.hexGRid,12,12,hallway11,hallway11.direction);
+
+
 
 
 
